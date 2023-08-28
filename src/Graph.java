@@ -13,6 +13,53 @@ public class Graph {
     }
 
     /**
+     * This algorithm performs a brute force algorithm on this graph with the given colors
+     *
+     * @param givenColors available colors
+     * @return validly colored graph or null if there is no solution
+     */
+    public Map<Integer, Color> bruteForceAlgorithm(Color... givenColors) {
+        var colors = Arrays.asList(givenColors);
+        // this list contains all solutions with a valid coloring, the integer represents
+        // the id of the vertex of this solution and the color its color
+        var solutions = new ArrayList<Map<Integer, Color>>();
+        colorVerticesRecursively(0, colors, solutions); // starting the coloring at the first vertex
+        // this complex looking like operation simply finds the solution with minimal color amount used
+        return solutions.stream().min(Comparator.comparing(map -> {
+            var colorAmount = 0;
+            var usedColors = new ArrayList<Color>();
+            for (var color : map.values()) {
+                if (!usedColors.contains(color)) {
+                    colorAmount++;
+                    usedColors.add(color);
+                }
+            }
+            return colorAmount;
+        })).orElse(null);
+    }
+
+    /**
+     * Colors the vertex with the vertex index with all colors and then colors the next vertex with all colors by making a recursive call
+     *
+     * @param vertexIndex index of the current vertex
+     * @param colors      available colors
+     * @param solutions   all valid solutions
+     */
+    public void colorVerticesRecursively(int vertexIndex, List<Color> colors, List<Map<Integer, Color>> solutions) {
+        if (vertexIndex == vertices.size()) { // if every combination has been validated, the algorithm is finished
+            if (valid()) {
+                solutions.add(toMap());
+            }
+            return;
+        }
+
+        for (var color : colors) {
+            vertices.get(vertexIndex).color(color); // colors the current vertex with the current color
+            colorVerticesRecursively(vertexIndex + 1, colors, solutions); // colors the next vertex recursively
+        }
+    }
+
+    /**
      * This algorithm is only working with connected graphs since it starts at the first vertex and goes from it to all other genes
      *
      * @param givenColors available colors
@@ -84,6 +131,14 @@ public class Graph {
 
     public boolean valid() {
         return validate(vertices);
+    }
+
+    public Map<Integer, Color> toMap() {
+        var result = new HashMap<Integer, Color>();
+        for (var vertex : vertices) {
+            result.put(vertex.id(), vertex.color());
+        }
+        return result;
     }
 
     public void resetGraph() {

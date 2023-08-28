@@ -11,7 +11,6 @@ public class TestGraph {
      */
     public static void main(String[] args) {
         if (args.length == 7) {
-
             var arguments = new HashMap<String, Object>();
             arguments.put("maxGenerationAmount", Integer.parseInt(args[0]));
             arguments.put("initialPopulationSize", Integer.parseInt(args[1]));
@@ -33,32 +32,82 @@ public class TestGraph {
                     "- Algorithm Attempts = " + arguments.get("algorithmAttempts");
             System.out.println(argsInfo);
 
+            var minimumColors = new HashMap<Integer, Integer>();
             var fails = 0;
             var times = 0;
 
             for (var i = 0; i < (int) arguments.get("algorithmAttempts"); i++) {
                 var minimumColorAmount = colorGraphGeneticWithMinimumColors(arguments);
+                minimumColors.put(minimumColorAmount, minimumColors.getOrDefault(minimumColorAmount, 0) + 1);
                 if (minimumColorAmount == 0) {
                     fails++;
                 }
                 times++;
             }
-            System.out.println(fails + " out of " + times + " times the algorithm failed");
-        } else {
-            var minimumColorAmount = colorGraphGreedyWithMinimumColors();
-            if (minimumColorAmount == 0) {
-                System.out.println("With this greedy algorithm the given graph cannot be colored with at least four colors.");
-            } else {
-                System.out.printf("%n%d colors are necessary to color the graph.%n", colorGraphGreedyWithMinimumColors());
+            System.out.println("\n" + fails + " out of " + times + " times the algorithm failed! Results:\n" +
+                    "0 Colors: " + minimumColors.getOrDefault(0, 0) + "\n" +
+                    "1 Color: " + minimumColors.getOrDefault(1, 0) + "\n" +
+                    "2 Colors: " + minimumColors.getOrDefault(2, 0) + "\n" +
+                    "3 Colors: " + minimumColors.getOrDefault(3, 0) + "\n" +
+                    "4 Colors: " + minimumColors.getOrDefault(4, 0) + "\n");
+        } else if (args.length == 1) {
+            if (args[0].equals("bruteForce")) {
+                var minimumColorAmount = colorGraphBruteForceWithMinimumColors();
+                if (minimumColorAmount == 0) {
+                    System.out.println("With the brute force algorithm the given graph cannot be colored with at least four colors.");
+                } else {
+                    System.out.printf("%n%d color(s) are necessary to color the graph.%n", minimumColorAmount);
+                }
+            } else if (args[0].equals("greedy")) {
+                var minimumColorAmount = colorGraphGreedyWithMinimumColors();
+                if (minimumColorAmount == 0) {
+                    System.out.println("With the greedy algorithm the given graph cannot be colored with at least four colors.");
+                } else {
+                    System.out.printf("%n%d color(s) are necessary to color the graph.%n", minimumColorAmount);
+                }
             }
         }
+    }
+
+    /**
+     * Performs the brute force algorithm with a different amount of colors on the given graph
+     *
+     * @return minimum amount of colors needed to color this graph
+     */
+    public static int colorGraphBruteForceWithMinimumColors() {
+        var graph = setupGraph();
+        Map<Integer, Color> solution;
+
+        solution = bruteForceAlgorithm(graph, Color.GREEN);
+        if (solution != null) {
+            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
+            return 1;
+        }
+
+        solution = bruteForceAlgorithm(graph, Color.GREEN, Color.BLUE);
+        if (solution != null) {
+            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
+            return 2;
+        }
+
+        solution = bruteForceAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED);
+        if (solution != null) {
+            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
+            return 3;
+        }
+
+        solution = bruteForceAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW);
+        if (solution != null) {
+            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
+            return 4;
+        }
+        return 0;
     }
 
     /**
      * Performs the greedy algorithm with a different amount of colors on the given graph
      *
      * @return minimum amount of colors needed to color this graph
-     * @see TestGraph#setupGraph()
      */
     public static int colorGraphGreedyWithMinimumColors() {
         var graph = setupGraph();
@@ -66,14 +115,17 @@ public class TestGraph {
         var minimumColorAmount = 0;
         if (greedyAlgorithm(graph, Color.GREEN)) { // check if graph can be colored with one color
             minimumColorAmount = 1;
+            graph.printInformation();
         } else if (greedyAlgorithm(graph, Color.GREEN, Color.BLUE)) { // check if graph can be colored with two colors
             minimumColorAmount = 2;
+            graph.printInformation();
         } else if (greedyAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED)) { // check if graph can be colored with three colors
             minimumColorAmount = 3;
+            graph.printInformation();
         } else if (greedyAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW)) { // check if graph can be colored with four colors
             minimumColorAmount = 4;
+            graph.printInformation();
         }
-        graph.printInformation();
         return minimumColorAmount;
     }
 
@@ -82,35 +134,39 @@ public class TestGraph {
      *
      * @param args system args ({@link TestGraph#main(String[])})
      * @return minimum amount of colors needed to color this graph
-     * @see TestGraph#setupGraph()
      */
     public static int colorGraphGeneticWithMinimumColors(Map<String, Object> args) {
         var graph = setupGraph();
+        Chromosome result;
 
-        var result1 = geneticAlgorithm(graph, args, Color.GREEN);
-        if (result1 != null && result1.valid()) {
-            result1.printInformation();
+        result = geneticAlgorithm(graph, args, Color.GREEN);
+        if (result != null && result.valid()) {
             return 1;
         }
 
-        var result2 = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE);
-        if (result2 != null && result2.valid()) {
-            //result2.printInformation();
+        result = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE);
+        if (result != null && result.valid()) {
             return 2;
         }
 
-        var result3 = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE, Color.RED);
-        if (result3 != null && result3.valid()) {
-            //result3.printInformation();
+        result = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE, Color.RED);
+        if (result != null && result.valid()) {
             return 3;
         }
 
-        var result4 = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW);
-        if (result4 != null && result4.valid()) {
-            //result4.printInformation();
+        result = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW);
+        if (result != null && result.valid()) {
             return 4;
         }
         return 0;
+    }
+
+    public static Map<Integer, Color> bruteForceAlgorithm(Graph graph, Color... colors) {
+        var solution = graph.bruteForceAlgorithm(colors);
+        if (solution == null) {
+            graph.resetGraph(); // resets the graph if the algorithm failed to make it possible to use the same graph again with more colors
+        }
+        return solution;
     }
 
     public static boolean greedyAlgorithm(Graph graph, Color... colors) {
@@ -190,6 +246,10 @@ public class TestGraph {
         vertex1.adjacencies(vertex0, vertex2, vertex3);
         vertex2.adjacencies(vertex0, vertex1, vertex3);
         vertex3.adjacencies(vertex1, vertex2);*/
+
+        /*vertex0.adjacencies(vertex1, vertex2);
+        vertex1.adjacencies(vertex0, vertex2);
+        vertex2.adjacencies(vertex0, vertex1);*/
 
         return new Graph(vertex0, vertex1, vertex2, vertex3, vertex4, vertex5, vertex6, vertex7, vertex8, vertex9);
     }

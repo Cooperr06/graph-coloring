@@ -1,4 +1,7 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
 
 public record Population(List<Chromosome> chromosomes) {
 
@@ -38,8 +41,6 @@ public record Population(List<Chromosome> chromosomes) {
         var random = new Random();
         var selectedChromosomes = new ArrayList<Chromosome>(); // represents the selected subset
 
-
-
         for (int i = 0; i < selectionSize; i++) {
             var tournamentList = new ArrayList<Chromosome>(); // represents the chromosomes for the current tournament
             // randomly selects chromosomes of this population for the tournament
@@ -61,9 +62,5 @@ public record Population(List<Chromosome> chromosomes) {
      */
     public void calculateFitness() {
         chromosomes.forEach(Chromosome::calculateFitness);
-    }
-
-    public void printInformation() {
-        chromosomes.forEach(Chromosome::printInformation);
     }
 }
