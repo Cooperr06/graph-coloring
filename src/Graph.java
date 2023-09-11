@@ -13,50 +13,35 @@ public class Graph {
     }
 
     /**
-     * This algorithm performs a brute force algorithm on this graph with the given colors
+     * Checks for every given vertex if its color is the same as one of its adjacencies
      *
-     * @param givenColors available colors
-     * @return validly colored graph or null if there is no solution
+     * @param vertices given vertices
+     * @return whether the graph is valid or not
      */
-    public Map<Integer, Color> bruteForceAlgorithm(Color... givenColors) {
-        var colors = Arrays.asList(givenColors);
-        // this list contains all solutions with a valid coloring, the integer represents
-        // the id of the vertex of this solution and the color its color
-        var solutions = new ArrayList<Map<Integer, Color>>();
-        colorVerticesRecursively(0, colors, solutions); // starting the coloring at the first vertex
-        // this complex looking like operation simply finds the solution with minimal color amount used
-        return solutions.stream().min(Comparator.comparing(map -> {
-            var colorAmount = 0;
-            var usedColors = new ArrayList<Color>();
-            for (var color : map.values()) {
-                if (!usedColors.contains(color)) {
-                    colorAmount++;
-                    usedColors.add(color);
+    public static boolean validate(List<Vertex> vertices) {
+        for (var vertex : vertices) {
+            if (vertex.color() == null) {
+                return false;
+            }
+            for (var adjacency : vertex.adjacencies()) {
+                if (vertex.color() == adjacency.color()) {
+                    return false;
                 }
             }
-            return colorAmount;
-        })).orElse(null);
+        }
+        return true;
     }
 
     /**
-     * Colors the vertex with the vertex index with all colors and then colors the next vertex with all colors by making a recursive call
+     * This algorithm performs a backtracking algorithm on this graph with the given colors
      *
-     * @param vertexIndex index of the current vertex
-     * @param colors      available colors
-     * @param solutions   all valid solutions
+     * @param givenColors available colors
+     * @return whether this graph can be colored with the available colors or not
      */
-    public void colorVerticesRecursively(int vertexIndex, List<Color> colors, List<Map<Integer, Color>> solutions) {
-        if (vertexIndex == vertices.size()) { // if every combination has been validated, the algorithm is finished
-            if (valid()) {
-                solutions.add(toMap());
-            }
-            return;
-        }
+    public boolean backtrackingAlgorithm(Color... givenColors) {
+        var colors = Arrays.asList(givenColors);
 
-        for (var color : colors) {
-            vertices.get(vertexIndex).color(color); // colors the current vertex with the current color
-            colorVerticesRecursively(vertexIndex + 1, colors, solutions); // colors the next vertex recursively
-        }
+        return colorVerticesRecursivelyBacktracking(0, colors);
     }
 
     /**
@@ -74,6 +59,36 @@ public class Graph {
     }
 
     /**
+     * Tries to color the vertex with the current vertex index with every color and checks for every color if it is valid, if so, the method recursively calls itself
+     *
+     * @param vertexIndex index of the current vertex
+     * @param colors      available colors
+     * @return whether all vertices could be colored recursively
+     */
+    public boolean colorVerticesRecursivelyBacktracking(int vertexIndex, List<Color> colors) {
+        // if all vertices have been colored, the algorithm succeeds
+        if (vertexIndex == vertices.size()) {
+            return true;
+        }
+
+        var vertex = vertices.get(vertexIndex); // the current vertex acquired based on the current vertex index
+
+        // goes through every color and checks if the vertex can be colored with it, if true, the algorithm tries to color the next vertex with the
+        // same procedure, but if this fails, the next color for this vertex is picked (because of the loop)
+        for (var color : colors) {
+            if (vertex.canBeColoredWith(color)) {
+                vertex.color(color);
+                // if all vertices can be colored validly, the algorithm succeeded
+                if (colorVerticesRecursivelyBacktracking(vertexIndex + 1, colors)) {
+                    return true;
+                }
+            }
+            vertex.color(null); // reset the color of the current vertex if it cannot be colored with the current color
+        }
+        return false; // returns false if all colors have been tried for this vertex and with each color assigned to the vertex, no solution was found
+    }
+
+    /**
      * @param args        the JVM arguments
      * @param givenColors available colors
      * @return solution of this algorithm
@@ -82,7 +97,7 @@ public class Graph {
         var random = new Random();
         var colors = Arrays.asList(givenColors);
 
-        var population = new Population(this, colors, (int) args.get("initialPopulationSize")); // creates the initial population
+        var population = new Population(this, (int) args.get("initialPopulationSize"), colors); // creates the initial population
         population.calculateFitness(); // calculates and determines the fitness for each chromosome in the initial population
 
         var generationAmount = 1;
@@ -112,33 +127,8 @@ public class Graph {
         return population.chromosomes().stream().max(Comparator.comparingInt(Chromosome::fitness)).orElseThrow(); // determines the chromosome with the highest fitness
     }
 
-    /**
-     * Checks for every given vertex if its color is the same as one of its adjacencies
-     *
-     * @param vertices given vertices
-     * @return whether the graph is valid or not
-     */
-    public static boolean validate(List<Vertex> vertices) {
-        for (var vertex : vertices) {
-            for (var adjacency : vertex.adjacencies()) {
-                if (vertex.color() == adjacency.color()) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     public boolean valid() {
         return validate(vertices);
-    }
-
-    public Map<Integer, Color> toMap() {
-        var result = new HashMap<Integer, Color>();
-        for (var vertex : vertices) {
-            result.put(vertex.id(), vertex.color());
-        }
-        return result;
     }
 
     public void resetGraph() {

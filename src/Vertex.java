@@ -53,16 +53,19 @@ public class Vertex {
         coloredAdjacencies = true; // marks this vertex as "visited"
 
         for (var adjacency : adjacencies) {
-            if (adjacency.coloredAdjacencies()) { // go to the next adjacent vertex if from this adjacency the adjacencies have already been colored
+            // go to the next adjacent vertex if from this adjacency the adjacencies have already been colored
+            if (adjacency.coloredAdjacencies()) {
                 continue;
             }
 
             if (adjacency.color() == null) {
-                if (!adjacency.colorVertex(colors)) { // color the adjacent vertex if it has not been already colored
+                // color the adjacent vertex if it has not been already colored
+                if (!adjacency.colorVertex(colors)) {
                     return false; // if this adjacent vertex cannot be validly colored with the available colors, the algorithm stops
                 }
             }
-            if (!adjacency.colorAdjacencies(colors)) { // color all the adjacent vertex's other adjacencies
+            // color all the adjacent vertex's other adjacencies
+            if (!adjacency.colorAdjacencies(colors)) {
                 return false; // same here: if the adjacent vertex's adjacencies cannot be validly colored with the available colors, the algorithm stops
             }
         }

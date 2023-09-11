@@ -1,13 +1,18 @@
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class TestGraph {
 
     /**
-     * @param args none for greedy algorithm, for genetic use the following:
-     *             <br>Index 0: Amount of Generations (Integer)<br>Index 1: Initial Population Size (Integer)<br>Index 2: Tournament Selection Percentage (Double)
-     *             <br>Index 3: Tournament Size Percentage (Double)<br>Index 4: Mutation Percentage (Double)<br>Index 5: Mutation Probability (Double)
-     *             <br>Index 6: Amount of times the algorithm is executed (Integer)
+     * @param args for genetic use the following:<br>
+     *             Index 0: Amount of Generations (Integer)<br>Index 1: Initial Population Size (Integer)<br>Index 2: Tournament Selection Percentage (Double)<br>
+     *             Index 3: Tournament Size Percentage (Double)<br>Index 4: Mutation Percentage (Double)<br>Index 5: Mutation Probability (Double)<br>
+     *             Index 6: Amount of times the algorithm is executed (Integer)<br>
+     *             for other algorithms use:<br>
+     *             Index 0: Type of algorithm
      */
     public static void main(String[] args) {
         if (args.length == 7) {
@@ -29,79 +34,73 @@ public class TestGraph {
                     "- Tournament Size Percentage = " + arguments.get("tournamentSizePercentage") + "\n" +
                     "- Mutation Percentage = " + arguments.get("mutationPercentage") + "\n" +
                     "- Mutation Probability = " + arguments.get("mutationProbability") + "\n" +
-                    "- Algorithm Attempts = " + arguments.get("algorithmAttempts");
+                    "- Algorithm Attempts = " + arguments.get("algorithmAttempts") + "\n";
             System.out.println(argsInfo);
 
             var minimumColors = new HashMap<Integer, Integer>();
-            var fails = 0;
+            var succeeded = 0;
             var times = 0;
 
-            for (var i = 0; i < (int) arguments.get("algorithmAttempts"); i++) {
-                var minimumColorAmount = colorGraphGeneticWithMinimumColors(arguments);
-                minimumColors.put(minimumColorAmount, minimumColors.getOrDefault(minimumColorAmount, 0) + 1);
-                if (minimumColorAmount == 0) {
-                    fails++;
+            try (var progressBar = new ProgressBarBuilder()
+                    .setTaskName("Genetic Algorithm Attempts")
+                    .setInitialMax((int) arguments.get("algorithmAttempts"))
+                    .setUpdateIntervalMillis(100)
+                    .setStyle(ProgressBarStyle.UNICODE_BLOCK)
+                    .build()) {
+                for (var i = 0; i < (int) arguments.get("algorithmAttempts"); i++) {
+                    var minimumColorAmount = colorGraphGeneticWithMinimumColors(arguments);
+                    minimumColors.put(minimumColorAmount, minimumColors.getOrDefault(minimumColorAmount, 0) + 1);
+                    if (minimumColorAmount != 0) {
+                        succeeded++;
+                    }
+                    times++;
+                    progressBar.step();
                 }
-                times++;
             }
-            System.out.println("\n" + fails + " out of " + times + " times the algorithm failed! Results:\n" +
+
+            System.out.println("\n" + succeeded + " out of " + times + " times the algorithm succeeded! Results:\n" +
                     "0 Colors: " + minimumColors.getOrDefault(0, 0) + "\n" +
                     "1 Color: " + minimumColors.getOrDefault(1, 0) + "\n" +
                     "2 Colors: " + minimumColors.getOrDefault(2, 0) + "\n" +
                     "3 Colors: " + minimumColors.getOrDefault(3, 0) + "\n" +
                     "4 Colors: " + minimumColors.getOrDefault(4, 0) + "\n");
         } else if (args.length == 1) {
-            if (args[0].equals("bruteForce")) {
-                var minimumColorAmount = colorGraphBruteForceWithMinimumColors();
-                if (minimumColorAmount == 0) {
-                    System.out.println("With the brute force algorithm the given graph cannot be colored with at least four colors.");
-                } else {
-                    System.out.printf("%n%d color(s) are necessary to color the graph.%n", minimumColorAmount);
-                }
-            } else if (args[0].equals("greedy")) {
-                var minimumColorAmount = colorGraphGreedyWithMinimumColors();
-                if (minimumColorAmount == 0) {
-                    System.out.println("With the greedy algorithm the given graph cannot be colored with at least four colors.");
-                } else {
-                    System.out.printf("%n%d color(s) are necessary to color the graph.%n", minimumColorAmount);
-                }
+            var minimumColorAmount = switch (args[0]) {
+                case "backtracking" -> colorGraphBacktrackingWithMinimumColors();
+                case "greedy" -> colorGraphGreedyWithMinimumColors();
+                default -> 0;
+            };
+            if (minimumColorAmount == 0) {
+                System.out.printf("With the %s algorithm the given graph cannot be colored with at least four colors.", args[0]);
+            } else {
+                System.out.printf("%n%d color(s) are necessary to color the graph.%n", minimumColorAmount);
             }
         }
     }
 
     /**
-     * Performs the brute force algorithm with a different amount of colors on the given graph
+     * Performs the backtracking algorithm with a different amount of colors on the given graph
      *
      * @return minimum amount of colors needed to color this graph
      */
-    public static int colorGraphBruteForceWithMinimumColors() {
+    public static int colorGraphBacktrackingWithMinimumColors() {
         var graph = setupGraph();
-        Map<Integer, Color> solution;
 
-        solution = bruteForceAlgorithm(graph, Color.GREEN);
-        if (solution != null) {
-            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
-            return 1;
+        var minimumColorAmount = 0;
+        if (backtrackingAlgorithm(graph, Color.GREEN)) { // check if graph can be colored with one color
+            minimumColorAmount = 1;
+            graph.printInformation();
+        } else if (backtrackingAlgorithm(graph, Color.GREEN, Color.BLUE)) { // check if graph can be colored with two colors
+            minimumColorAmount = 2;
+            graph.printInformation();
+        } else if (backtrackingAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED)) { // check if graph can be colored with three colors
+            minimumColorAmount = 3;
+            graph.printInformation();
+        } else if (backtrackingAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW)) { // check if graph can be colored with four colors
+            minimumColorAmount = 4;
+            graph.printInformation();
         }
-
-        solution = bruteForceAlgorithm(graph, Color.GREEN, Color.BLUE);
-        if (solution != null) {
-            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
-            return 2;
-        }
-
-        solution = bruteForceAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED);
-        if (solution != null) {
-            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
-            return 3;
-        }
-
-        solution = bruteForceAlgorithm(graph, Color.GREEN, Color.BLUE, Color.RED, Color.YELLOW);
-        if (solution != null) {
-            solution.forEach((id, color) -> System.out.printf("Vertex %d: %s%n", id, color == null ? "null" : color.displayName()));
-            return 4;
-        }
-        return 0;
+        return minimumColorAmount;
     }
 
     /**
@@ -146,6 +145,7 @@ public class TestGraph {
 
         result = geneticAlgorithm(graph, args, Color.GREEN, Color.BLUE);
         if (result != null && result.valid()) {
+            result.printInformation();
             return 2;
         }
 
@@ -161,19 +161,20 @@ public class TestGraph {
         return 0;
     }
 
-    public static Map<Integer, Color> bruteForceAlgorithm(Graph graph, Color... colors) {
-        var solution = graph.bruteForceAlgorithm(colors);
-        if (solution == null) {
-            graph.resetGraph(); // resets the graph if the algorithm failed to make it possible to use the same graph again with more colors
+    public static boolean backtrackingAlgorithm(Graph graph, Color... colors) {
+        if (graph.backtrackingAlgorithm(colors) && graph.valid()) {
+            return true; // returns true if the graph can be colored with the given colors
+        } else {
+            graph.resetGraph(); // resets the graph if the algorithm failed
+            return false;
         }
-        return solution;
     }
 
     public static boolean greedyAlgorithm(Graph graph, Color... colors) {
         if (graph.greedyAlgorithm(colors) && graph.valid()) {
             return true; // returns true if the graph can be colored with the given colors
         } else {
-            graph.resetGraph(); // resets the graph if the algorithm failed to make it possible to use the same graph again with more colors
+            graph.resetGraph(); // resets the graph if the algorithm failed
             return false;
         }
     }
@@ -204,7 +205,6 @@ public class TestGraph {
      * @return graph
      */
     public static Graph setupGraph() {
-
         var vertex0 = new Vertex(0);
         var vertex1 = new Vertex(1);
         var vertex2 = new Vertex(2);

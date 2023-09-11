@@ -9,10 +9,9 @@ public record Population(List<Chromosome> chromosomes) {
      * Randomly generates a new population
      *
      * @param graph            the graph the chromosomes are based on
-     * @param colors           available colors
      * @param chromosomeAmount amount of chromosomes for this population
      */
-    public Population(Graph graph, List<Color> colors, int chromosomeAmount) {
+    public Population(Graph graph, int chromosomeAmount, List<Color> colors) {
         this(new ArrayList<>());
         for (int i = 0; i < chromosomeAmount; i++) {
             chromosomes.add(new Chromosome(graph.vertices(), colors));

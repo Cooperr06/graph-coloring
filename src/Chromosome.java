@@ -5,15 +5,8 @@ import java.util.Random;
 
 public class Chromosome {
 
-    private final List<Vertex> genes;
+    private final List<Vertex> genes = new ArrayList<>();
     private int fitness = 0;
-
-    public Chromosome(List<Vertex> genes) {
-        this.genes = new ArrayList<>();
-        for (var gene : genes) {
-            this.genes.add(Vertex.of(gene.id(), null));
-        }
-    }
 
     /**
      * Clones the given genes and assigns each of them a random color of the available colors
@@ -22,8 +15,6 @@ public class Chromosome {
      * @param colors available colors
      */
     public Chromosome(List<Vertex> genes, List<Color> colors) {
-        this.genes = new ArrayList<>();
-
         // the "cloning" procedure is necessary to ensure the correct reflection of the adjacency relationships and also to have "own" objects rather
         // than reference objects, because otherwise each chromosome would reference to the same genes which would disallow changing the genes' state
         var clones = new HashMap<Vertex, Vertex>(); // represents original (key) and cloned (value) vertices
@@ -31,19 +22,23 @@ public class Chromosome {
         // clones all vertices and assigns them random colors
         for (var gene : genes) {
             var color = colors.get(random.nextInt(colors.size())); // determines a random color for the cloned vertex
-            clones.put(gene, Vertex.of(gene.id(), color)); // puts the original vertex and a clone of the current vertex with the random color into the map
+            var clonedVertex = Vertex.of(gene.id(), color);
+            clones.put(gene, clonedVertex); // puts the original vertex and a clone of the current vertex with the random color into the map
+            this.genes.add(clonedVertex);
         }
 
         // goes through every (original) vertex and determines its adjacencies so that the adjacencies of the original vertex's clone can be
         // assigned to the clones of the original vertex's adjacencies
-        for (var originalVertex : clones.keySet()) {
+        for (var originalVertex : genes) {
             var cloneAdjacencies = new ArrayList<Vertex>(); // stores the clones of the original vertex's adjacencies
             for (var originalAdjacency : originalVertex.adjacencies()) {
                 cloneAdjacencies.add(clones.get(originalAdjacency)); // adds the clone of the original adjacency to the list
             }
             clones.get(originalVertex).adjacencies(cloneAdjacencies); // adds all cloned adjacencies to the original vertex's clone
         }
-        this.genes.addAll(clones.values()); // stores all the clones
+    }
+
+    public Chromosome() {
     }
 
     /**
@@ -57,7 +52,7 @@ public class Chromosome {
     public Chromosome crossover(Chromosome otherParent) {
         var random = new Random();
 
-        var child = new Chromosome(new ArrayList<>());
+        var child = new Chromosome();
         // crossover point is as default in the mid of the list, but to add variation a random value is being added as well.
         // To ensure data quality, the point is within a range (20%), dependent on the amount of vertices, around the mid
         var crossoverPoint = genes.size() / 2 + random.nextInt(genes.size() / 5 + 1);
