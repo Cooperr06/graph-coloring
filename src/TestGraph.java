@@ -10,7 +10,7 @@ public class TestGraph {
      * @param args for genetic use the following:<br>
      *             Index 0: Amount of Generations (Integer)<br>Index 1: Initial Population Size (Integer)<br>Index 2: Tournament Selection Percentage (Double)<br>
      *             Index 3: Tournament Size Percentage (Double)<br>Index 4: Mutation Percentage (Double)<br>Index 5: Mutation Probability (Double)<br>
-     *             Index 6: Amount of times the algorithm is executed (Integer)<br>
+     *             Index 6: Amount of times the algorithm is executed (Integer)<br><br>
      *             for other algorithms use:<br>
      *             Index 0: Type of algorithm
      */
