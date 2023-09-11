@@ -182,11 +182,6 @@ public class Vertex {
             return this;
         }
 
-        public Builder adjacencies(Vertex... adjacencies) {
-            this.adjacencies = List.of(adjacencies);
-            return this;
-        }
-
         public Builder coloredAdjacencies(boolean coloredAdjacencies) {
             this.coloredAdjacencies = coloredAdjacencies;
             return this;
