@@ -105,7 +105,7 @@ public class Graph {
         for (int i = 1; i < (int) args.get("maxGenerationAmount"); i++) {
             var nextGeneration = generateGeneration(colors, population, args);
             if (nextGeneration.size() == 1) {
-                break;
+                return nextGeneration.get(0);
             }
 
             population = new Population(nextGeneration);
