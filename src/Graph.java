@@ -93,38 +93,56 @@ public class Graph {
      * @param givenColors available colors
      * @return solution of this algorithm
      */
-    public Chromosome geneticAlgorithm(Map<String, Object> args, Color... givenColors) {
-        var random = new Random();
+    public Chromosome geneticAlgorithm(Map<String, Object> args,
+                                       Color... givenColors) {
         var colors = Arrays.asList(givenColors);
 
-        var population = new Population(this, (int) args.get("initialPopulationSize"), colors); // creates the initial population
-        population.calculateFitness(); // calculates and determines the fitness for each chromosome in the initial population
+        var population = new Population(this,
+                (int) args.get("initialPopulationSize"), colors);
+        population.calculateFitness();
 
-        var generationAmount = 1;
-        while (generationAmount < (int) args.get("maxGenerationAmount")) {
-            // selects the parents for the next generation
-            var selectedParents = population.tournamentSelection((double) args.get("tournamentSelectionPercentage"), (double) args.get("tournamentSizePercentage"));
-            // if a generation only persists of one chromosome, the algorithm stops
-            if (selectedParents.size() == 1) {
+
+        for (int i = 1; i < (int) args.get("maxGenerationAmount"); i++) {
+            var nextGeneration = generateGeneration(colors, population, args);
+            if (nextGeneration.size() == 1) {
                 break;
             }
 
-            var nextGeneration = new ArrayList<Chromosome>(); // represents the next generation resulting of the crossover
-            for (int i = 0; i < selectedParents.size(); i++) {
-                var selectedParent = selectedParents.get(i);
-                var otherParent = selectedParents.get(random.nextInt(selectedParents.size())); // randomly determines the other parent for the crossover
-                var child = selectedParent.crossover(otherParent); // performs the crossover
-                // mutates the child with the mutation percentage and the probability for a mutation of a gene and adds it to the next generation
-                child.mutate(colors, (double) args.get("mutationPercentage"), (double) args.get("mutationProbability"));
-                nextGeneration.add(child);
-            }
-            // updates the population to the next generation and calculates its fitness
             population = new Population(nextGeneration);
             population.calculateFitness();
-
-            generationAmount++;
         }
-        return population.chromosomes().stream().max(Comparator.comparingInt(Chromosome::fitness)).orElseThrow(); // determines the chromosome with the highest fitness
+        return population.chromosomes().stream()
+                .max(Comparator.comparingInt(Chromosome::fitness))
+                .orElseThrow();
+    }
+
+    /**
+     * Generates a successor generation by selecting parents and performing crossovers and mutations of the
+     * crossovers' resulting children with the given colors and arguments
+     *
+     * @param colors     available colors
+     * @param population current population
+     * @param args       the JVM arguments
+     * @return successor generation
+     */
+    private List<Chromosome> generateGeneration(List<Color> colors, Population population, Map<String, Object> args) {
+        // selects the parents for the next generation
+        var selectedParents = population.tournamentSelection((double) args.get("tournamentSelectionPercentage"), (double) args.get("tournamentSizePercentage"));
+        // if a generation only consists of one chromosome, the algorithm stops
+        if (selectedParents.size() == 1) {
+            return selectedParents;
+        }
+
+        var nextGeneration = new ArrayList<Chromosome>(); // represents the next generation resulting of the crossover
+        for (int i = 0; i < selectedParents.size(); i++) {
+            var selectedParent = selectedParents.get(i);
+            var otherParent = selectedParents.get(new Random().nextInt(selectedParents.size())); // randomly determines the other parent for the crossover
+            var child = selectedParent.crossover(otherParent); // performs the crossover
+            // mutates the child with the mutation percentage and the probability for a mutation of a gene and adds it to the next generation
+            child.mutate(colors, (double) args.get("mutationPercentage"), (double) args.get("mutationProbability"));
+            nextGeneration.add(child);
+        }
+        return nextGeneration;
     }
 
     public boolean valid() {
