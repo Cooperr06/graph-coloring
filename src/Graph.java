@@ -133,7 +133,7 @@ public class Graph {
             return selectedParents;
         }
 
-        var nextGeneration = new ArrayList<Chromosome>(); // represents the next generation resulting of the crossover
+        var nextGeneration = new ArrayList<Chromosome>(); // represents the next generation resulting of the crossovers and mutations
         for (int i = 0; i < selectedParents.size(); i++) {
             var selectedParent = selectedParents.get(i);
             var otherParent = selectedParents.get(new Random().nextInt(selectedParents.size())); // randomly determines the other parent for the crossover
