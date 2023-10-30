@@ -3,7 +3,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
-public record Population(List<Chromosome> chromosomes) {
+public class Population {
+
+    private final List<Chromosome> chromosomes;
+
+    public Population(List<Chromosome> chromosomes) {
+        this.chromosomes = chromosomes;
+    }
 
     /**
      * Randomly generates a new population
@@ -61,5 +67,9 @@ public record Population(List<Chromosome> chromosomes) {
      */
     public void calculateFitness() {
         chromosomes.forEach(Chromosome::calculateFitness);
+    }
+
+    public List<Chromosome> chromosomes() {
+        return chromosomes;
     }
 }
