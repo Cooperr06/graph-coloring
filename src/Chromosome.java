@@ -26,7 +26,6 @@ public class Chromosome {
             clones.put(gene, clonedVertex); // puts the original vertex and a clone of the current vertex with the random color into the map
             this.genes.add(clonedVertex);
         }
-
         // goes through every (original) vertex and determines its adjacencies so that the adjacencies of the original vertex's clone can be
         // assigned to the clones of the original vertex's adjacencies
         for (var originalVertex : genes) {
@@ -51,16 +50,15 @@ public class Chromosome {
      */
     public Chromosome crossover(Chromosome otherParent) {
         var random = new Random();
-
         var child = new Chromosome();
-        // crossover point is as default in the mid of the list, but to add variation a random value is being added as well.
-        // To ensure data quality, the point is within a range (20%), dependent on the amount of vertices, around the mid
-        var crossoverPoint = genes.size() / 2 + random.nextInt(genes.size() / 5 + 1);
+        var crossoverPoint = genes.size() / 2 + (random.nextBoolean() ? 1 : -1) *
+                random.nextInt(genes.size() / 5 + 1);
+
         for (int i = 0; i < genes.size(); i++) {
             if (i <= crossoverPoint) {
-                child.genes().add(genes.get(i)); // replaces the genes of the child from the start until the crossover point with the genes of the first parent
+                child.genes().add(genes.get(i));
             } else {
-                child.genes().add(otherParent.genes().get(i)); // replaces the genes of the child from the crossover point until the end with the genes of the second parent
+                child.genes().add(otherParent.genes().get(i));
             }
         }
         return child;
@@ -88,6 +86,7 @@ public class Chromosome {
                         newColor = colors.get(random.nextInt(colors.size()));
                     }
                 }
+                //newColor = colors.get(random.nextInt(colors.size()));
                 vertex.color(newColor); // colors the vertex with its current color if there are no other valid colors, or otherwise with a different valid color
             }
         }

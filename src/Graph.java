@@ -93,24 +93,23 @@ public class Graph {
      * @param givenColors available colors
      * @return solution of this algorithm
      */
-    public Chromosome geneticAlgorithm(Map<String, Object> args,
-                                       Color... givenColors) {
+    public Chromosome geneticAlgorithm(Map<String, Object> args, Color... givenColors) {
         var colors = Arrays.asList(givenColors);
-
-        var population = new Population(this,
-                (int) args.get("initialPopulationSize"), colors);
+        var population = new Population(this, (int) args.get("initialPopulationSize"), colors); // creates the initial population
         population.calculateFitness();
-
-
+        // generates new generations until maxGenerationAmount is reached or until the current generation only consists of one chromosome
         for (int i = 1; i < (int) args.get("maxGenerationAmount"); i++) {
             var nextGeneration = generateGeneration(colors, population, args);
+            // no crossover possible, break loop
             if (nextGeneration.size() == 1) {
                 return nextGeneration.get(0);
             }
-
+            // updates the current generation to the new generated one and calculates and determines the
+            // fitness for each chromosome in the initial population
             population = new Population(nextGeneration);
             population.calculateFitness();
         }
+        // finds the chromosome with the highest fitness and returns it
         return population.chromosomes().stream()
                 .max(Comparator.comparingInt(Chromosome::fitness))
                 .orElseThrow();
