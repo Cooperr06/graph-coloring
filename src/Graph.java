@@ -8,8 +8,27 @@ public class Graph {
         this.vertices = vertices;
     }
 
+    /**
+     * This constructor only exists in order to make it easier to set a graph up (see {@link GraphColoring#setupGraph()})
+     *
+     * @param vertices vertices of the graph
+     */
     public Graph(Vertex... vertices) {
         this.vertices = List.of(vertices);
+    }
+
+    /**
+     * This algorithm is only working with connected graphs since it starts at the first vertex and goes from it to all other genes
+     *
+     * @param givenColors available colors
+     * @return whether the algorithm succeeded or not
+     */
+    public boolean greedyAlgorithm(Color... givenColors) {
+        var colors = Arrays.asList(givenColors);
+
+        // colors the first vertex and from it all its adjacencies
+        // returns true if all operations succeed
+        return vertices.get(0).colorVertex(colors) && vertices.get(0).colorAdjacencies(colors);
     }
 
     /**
@@ -33,62 +52,6 @@ public class Graph {
     }
 
     /**
-     * This algorithm performs a backtracking algorithm on this graph with the given colors
-     *
-     * @param givenColors available colors
-     * @return whether this graph can be colored with the available colors or not
-     */
-    public boolean backtrackingAlgorithm(Color... givenColors) {
-        var colors = Arrays.asList(givenColors);
-
-        return colorVerticesRecursivelyBacktracking(0, colors);
-    }
-
-    /**
-     * This algorithm is only working with connected graphs since it starts at the first vertex and goes from it to all other genes
-     *
-     * @param givenColors available colors
-     * @return whether the algorithm succeeded or not
-     */
-    public boolean greedyAlgorithm(Color... givenColors) {
-        var colors = Arrays.asList(givenColors);
-
-        // colors the first vertex and from it all its adjacencies
-        // returns true if all operations succeed
-        return vertices.get(0).colorVertex(colors) && vertices.get(0).colorAdjacencies(colors);
-    }
-
-    /**
-     * Tries to color the vertex with the current vertex index with every color and checks for every color if it is valid, if so, the method recursively calls itself
-     *
-     * @param vertexIndex index of the current vertex
-     * @param colors      available colors
-     * @return whether all vertices could be colored recursively
-     */
-    public boolean colorVerticesRecursivelyBacktracking(int vertexIndex, List<Color> colors) {
-        // if all vertices have been colored, the algorithm succeeds
-        if (vertexIndex == vertices.size()) {
-            return true;
-        }
-
-        var vertex = vertices.get(vertexIndex); // the current vertex acquired based on the current vertex index
-
-        // goes through every color and checks if the vertex can be colored with it, if true, the algorithm tries to color the next vertex with the
-        // same procedure, but if this fails, the next color for this vertex is picked (because of the loop)
-        for (var color : colors) {
-            if (vertex.canBeColoredWith(color)) {
-                vertex.color(color);
-                // if all vertices can be colored validly, the algorithm succeeded
-                if (colorVerticesRecursivelyBacktracking(vertexIndex + 1, colors)) {
-                    return true;
-                }
-            }
-            vertex.color(null); // reset the color of the current vertex if it cannot be colored with the current color
-        }
-        return false; // returns false if all colors have been tried for this vertex and with each color assigned to the vertex, no solution was found
-    }
-
-    /**
      * @param args        the JVM arguments
      * @param givenColors available colors
      * @return solution of this algorithm
@@ -98,7 +61,7 @@ public class Graph {
         var population = new Population(this, (int) args.get("initialPopulationSize"), colors); // creates the initial population
         population.calculateFitness();
         // generates new generations until maxGenerationAmount is reached or until the current generation only consists of one chromosome
-        for (int i = 1; i < (int) args.get("maxGenerationAmount"); i++) {
+        for (var i = 1; i < (int) args.get("maxGenerationAmount"); i++) {
             var nextGeneration = generateGeneration(colors, population, args);
             // no crossover possible, break loop
             if (nextGeneration.size() == 1) {
@@ -133,7 +96,7 @@ public class Graph {
         }
 
         var nextGeneration = new ArrayList<Chromosome>(); // represents the next generation resulting of the crossovers and mutations
-        for (int i = 0; i < selectedParents.size(); i++) {
+        for (var i = 0; i < selectedParents.size(); i++) {
             var selectedParent = selectedParents.get(i);
             var otherParent = selectedParents.get(new Random().nextInt(selectedParents.size())); // randomly determines the other parent for the crossover
             var child = selectedParent.crossover(otherParent); // performs the crossover
@@ -152,6 +115,9 @@ public class Graph {
         vertices.forEach(Vertex::resetVertex);
     }
 
+    /**
+     * @see Vertex#printInformation()
+     */
     public void printInformation() {
         vertices.stream().sorted(Comparator.comparing(Vertex::id)).forEach(Vertex::printInformation);
     }

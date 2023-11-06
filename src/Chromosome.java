@@ -8,6 +8,9 @@ public class Chromosome {
     private final List<Vertex> genes = new ArrayList<>();
     private int fitness = 0;
 
+    public Chromosome() {
+    }
+
     /**
      * Clones the given genes and assigns each of them a random color of the available colors
      *
@@ -37,9 +40,6 @@ public class Chromosome {
         }
     }
 
-    public Chromosome() {
-    }
-
     /**
      * Merges this chromosome with another chromosome to one child chromosome.<br>
      * From the first gene to a specific crossover point, this chromosome's genes are copied and from the crossover point to the last gene,
@@ -54,7 +54,7 @@ public class Chromosome {
         var crossoverPoint = genes.size() / 2 + (random.nextBoolean() ? 1 : -1) *
                 random.nextInt(genes.size() / 5 + 1);
 
-        for (int i = 0; i < genes.size(); i++) {
+        for (var i = 0; i < genes.size(); i++) {
             if (i <= crossoverPoint) {
                 child.genes().add(genes.get(i));
             } else {
@@ -75,7 +75,7 @@ public class Chromosome {
         var random = new Random();
         var amountOfChanges = Math.round(genes.size() * mutationPercentage);
 
-        for (int i = 0; i < amountOfChanges; i++) {
+        for (var i = 0; i < amountOfChanges; i++) {
             // if a random double between 0 and 1 is smaller than the probability, a gene is being changed
             if (random.nextDouble() < probability) {
                 var vertex = genes.get(random.nextInt(genes.size())); // picks a random vertex
@@ -112,6 +112,9 @@ public class Chromosome {
         return Graph.validate(genes);
     }
 
+    /**
+     * @see Vertex#printInformation()
+     */
     public void printInformation() {
         new Graph(genes).printInformation();
     }

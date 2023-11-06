@@ -25,7 +25,6 @@ public class Vertex {
         return new Builder(id).color(color).build();
     }
 
-    // region Greedy Algorithm
     /**
      * Colors this vertex with the first valid color
      *
@@ -71,7 +70,6 @@ public class Vertex {
         }
         return true;
     }
-    // endregion
 
     /**
      * Determines all valid colors for this vertex which are not occupied by an adjacent vertex
@@ -117,6 +115,9 @@ public class Vertex {
         coloredAdjacencies = false;
     }
 
+    /**
+     * Used in order to control a result
+     */
     public void printInformation() {
         System.out.printf("Vertex %d: %s%n", id(), color() == null ? "null" : color().displayName());
     }

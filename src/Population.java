@@ -19,7 +19,7 @@ public class Population {
      */
     public Population(Graph graph, int chromosomeAmount, List<Color> colors) {
         this(new ArrayList<>());
-        for (int i = 0; i < chromosomeAmount; i++) {
+        for (var i = 0; i < chromosomeAmount; i++) {
             chromosomes.add(new Chromosome(graph.vertices(), colors));
         }
     }
@@ -39,17 +39,17 @@ public class Population {
      * @return selected subset
      */
     public List<Chromosome> tournamentSelection(double selectionPercentage, double tournamentSizePercentage) {
-
-        var selectionSize = (int) Math.floor(chromosomes.size() * selectionPercentage); // floor is here necessary to prevent the selection from stagnating
+        // calculating the absolute values of the given percentages
+        var selectionSize = (int) Math.round(chromosomes.size() * selectionPercentage);
         var tournamentSize = (int) Math.round(chromosomes.size() * tournamentSizePercentage);
 
         var random = new Random();
-        var selectedChromosomes = new ArrayList<Chromosome>(); // represents the selected subset
+        var selectedChromosomes = new ArrayList<Chromosome>(); // represents the selected chromosomes which will form the successor generation
 
-        for (int i = 0; i < selectionSize; i++) {
+        for (var i = 0; i < selectionSize; i++) {
             var tournamentList = new ArrayList<Chromosome>(); // represents the chromosomes for the current tournament
             // randomly selects chromosomes of this population for the tournament
-            for (int j = 0; j < tournamentSize; j++) {
+            for (var j = 0; j < tournamentSize; j++) {
                 var chromosome = chromosomes.get(random.nextInt(chromosomes.size()));
                 tournamentList.add(chromosome);
             }
@@ -57,7 +57,8 @@ public class Population {
             var winner = tournamentList.stream()
                     .max(Comparator.comparingInt(Chromosome::fitness)) // finds the chromosome with the highest fitness in this tournament
                     .orElseThrow();
-            selectedChromosomes.add(winner); // adds the winner of this tournament to the subset
+            // adds the winner of this tournament to the subset, so to the list of chromosomes which will form the new generation
+            selectedChromosomes.add(winner);
         }
         return selectedChromosomes;
     }

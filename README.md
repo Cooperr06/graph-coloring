@@ -1,5 +1,5 @@
 # Algorithms to solve the Graph Coloring Theorem
-These algorithms are explained in detail in my scientific work which deals with the Graph Coloring Theorem and tries to solve it
+These algorithms are explained in detail in my seminar paper which deals with the Graph Coloring Theorem and tries to solve it
 using these algorithms, primarily focussing on the genetic algorithm.
 ## Types of Algorithms
 ### Genetic Algorithm
